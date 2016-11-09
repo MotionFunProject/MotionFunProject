@@ -3,7 +3,7 @@
 # A Simple Sensor Test to make sure everything is functioning properly.
 # Will print the heading, roll, and pitch continuously to the console. 
 #
-# See Commands.txt for a list of all the available commands.
+# See BNO055_Commands.txt for a list of all the available commands.
 
 import logging
 import sys

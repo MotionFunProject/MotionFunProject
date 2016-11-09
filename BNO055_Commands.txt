@@ -29,5 +29,5 @@ COMMANDS:
 # Linear Acceleration Data: 	x,y,z = bno.read_linear_acceleration()
     
 
-Gravity acceleration data :	x,y,z = bno.read_gravity()
+# Gravity acceleration data :	x,y,z = bno.read_gravity()
     
