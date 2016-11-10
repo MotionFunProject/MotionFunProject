@@ -24,7 +24,7 @@ if not bno.begin():
     raise RuntimeError('The sensor is not detected. Make sure the sensor is connected to your Pi')
 
 
-def systemstatus():
+def systemStatus():
     # Print system status and self test result.
     status, self_test, error = bno.get_system_status()
     print('System status: {0}'.format(status))
@@ -33,7 +33,13 @@ def systemstatus():
     if status == 0x01:
         print('System error: {0}'.format(error))
 
-def diagnostictool():
+def calibrationStatus():
+    # Read calibration status 
+    sys, gyro, accel, mag = bno.get_calibration_status()
+    print('SysCal={0:0.2F} GyroCal={1:0.2F} AccelCal={2:0.2F} MagCal={3:0.2F}'.format(
+              sys, gyro, accel, mag))
+
+def diagnosticTool():
     # Print BNO055 software revision and other diagnostic data.
     sw, bl, accel, mag, gyro = bno.get_revision()
     print('Software version:   {0}'.format(sw))
@@ -42,21 +48,25 @@ def diagnostictool():
     print('Magnetometer ID:    0x{0:02X}'.format(mag))
     print('Gyroscope ID:       0x{0:02X}\n'.format(gyro))
 
+
 def simpleTest():
     # Will Print head, pitch, and roll continuously 
     print('Reading sensor data, press Ctrl-C to quit...')
     while True:
+        # Read Quaternion Coordinates 
+        quatX, quatY, quatZ, quatW = bno.read_quaternion()
         # Read the Euler angles.
         heading, roll, pitch = bno.read_euler()
         # Read the calibration status.
         sys, gyro, accel, mag = bno.get_calibration_status()
         # Print everything out.
-        print('Heading={0:0.2F} Roll={1:0.2F} Pitch={2:0.2F}\tSys_cal={3} Gyro_cal={4} Accel_cal={5} Mag_cal={6}'.format(
-              heading, roll, pitch, sys, gyro, accel, mag))
+        print('Heading={0:0.2F} Roll={1:0.2F} Pitch={2:0.2F} QuatX={3} QuatY={4} Quatz={5} QuatW={6}'.format(
+              heading, roll, pitch, quatX, quatY, quatZ, quatW))
         time.sleep(1)
 
-systemstatus()
-diagnostictool()
+systemStatus()
+calibrationStatus()
+diagnosticTool()
 simpleTest()
 
    
