@@ -9,8 +9,6 @@
 # HOW TO RUN:
 #
 # Run this code using terminal command 'sudo python webData.py'.
-# SSH/SCP into your Raspberry Pi.
-# Open your WebGL enabled website browser and navigate to the address of your Raspberry Pi.
 
 import threading
 import time
