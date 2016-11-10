@@ -1,0 +1,33 @@
+Orientation Commands for the BNO055 9D0F Sensor (at least the ones I've found so far): 
+
+COMMANDS: 
+
+
+# Quaternion:
+    x,y,z,w = bno.read_quaterion()
+
+
+
+# Sensor temperature: temp_c = bno.read_temp()
+
+
+
+# Magnetometer data:  x,y,z = bno.read_magnetometer()
+
+
+
+# Gyroscope data:    x,y,z = bno.read_gyroscope()
+
+
+
+# Accelerometer data:
+    x,y,z = bno.read_accelerometer()
+    
+
+
+
+# Linear Acceleration Data: 	x,y,z = bno.read_linear_acceleration()
+    
+
+# Gravity acceleration data :	x,y,z = bno.read_gravity()
+    

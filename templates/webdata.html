@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Motion Fun</title>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <style> {
+
+      } </style>
+  	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	</head>
+	<body>
+		<div class="container" id="orientation">
+          <h2>Euler Vector Orientation (degrees):</h2>
+          <h3>Heading = <span id="heading">0</span></h3>
+          <h3>Roll = <span id="roll">0</span></h3>
+          <h3>Pitch = <span id="pitch">0</span></h3>
+
+    </div>
+    <div class="container">
+          <h2>Temperature</h2>
+          <h3>Temperature = <span id="temp">0</span></h3>
+    </div>
+    <div class="container" id "quaternion">
+          <h2>Quaternion Coordinates</h2>
+          <h3>Quat X = <span id="quatx">0</span></h3>
+          <h3>Quat Y = <span id="quaty">0</span></h3>
+          <h3>Quat Z = <span id="quatz">0</span></h3>
+          <h3>Quat W = <span id="quatw">0</span></h3>
+    </div>
+    <div class="container" id="calibration">
+            <h2>Calibration:</h2>
+            <h3>(0 = Uncalibrated )</h3>
+            <h3>(3 = Calibrated)</h3>
+            <h3>System = <span id="syscal">0</span></h3>
+            <h3>Gyroscope = <span id="gyrocal">0</span></h3>
+            <h3>Accelerometer = <span id="accelcal">0</span></h3>
+            <h3>Magnetometer = <span id="magcal">0</span></h3>
+    </div>
+
+  <script>
+  $(document).ready(function() {
+     var bnoData = null;
+
+    function updateData(data) {
+          // Save the reading then update the UI.
+          bnoData = data;
+          $('#heading').text(data.heading);
+          $('#roll').text(data.roll);
+          $('#pitch').text(data.pitch);
+          $('#quatx').text(data.quatx);
+          $('#quaty').text(data.quaty);
+          $('#quatz').text(data.quatz);
+          $('#quatw').text(data.quatw);
+          $('#temp').text(data.temp)
+          $('#syscal').text(data.syscal);
+          $('#gyrocal').text(data.gyrocal);
+          $('#accelcal').text(data.accelcal);
+          $('#magcal').text(data.magcal);
+    }  
+
+    // Create server sent event connection to receive BNO sensor data.
+    var server = new EventSource('/bno');
+
+    server.onopen = function(e) {
+        $('#orientation').show();
+        $('#calibration').show();
+    };
+
+    // Add server sent event handler
+    server.onmessage = function(e) {
+        // Update BNO sensor values.
+        updateData(JSON.parse(e.data));
+    };
+  });
+  </script>
+	</body>
+</html>
