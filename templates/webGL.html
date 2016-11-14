@@ -23,7 +23,7 @@
 $(document).ready(function() {
     var sceneWidth = 800;
     var sceneHeight = 640;
-    var bnoData = null;
+    var sensorData = null;
     var offset = null;
     var orientation = null;
     var currentModel = null;
@@ -49,8 +49,7 @@ $(document).ready(function() {
 
     // Setup Three.js scene and camera.
     var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera(75, sceneWidth / sceneHeight, 0.1, 1000);
-    // Start with the camera moved back a bit to look directly at the origin.
+    var camera = new THREE.PerspectiveCamera(35, sceneWidth / sceneHeight, 0.1, 10000);
     camera.position.z = 10;
 
     // Setup Three.js WebGL renderer and add it to the page.
@@ -65,22 +64,22 @@ $(document).ready(function() {
 
     // Setup 3 point lighting with a red and blue point light in upper left
     // and right corners, plus a bit of backlight from the rear forward.
+    //https://threejs.org/docs/api/lights/PointLight.html
     var pointLight1 = new THREE.PointLight(0xffbbbb, 0.6);
     pointLight1.position.set(40, 15, 40);
     scene.add(pointLight1);
     var pointLight2 = new THREE.PointLight(0xbbbbff, 0.6);
     pointLight2.position.set(-40, 15, 40);
     scene.add(pointLight2);
-    var backLight = new THREE.DirectionalLight(0xffff, 0.3);
-    backLight.position.set(0, -0.25, -1);
+    var backLight = new THREE.DirectionalLight(0xffff, 0.6);
+    backLight.position.set(0, 0, 0);
     scene.add(backLight);
 
     // Create a couple groups to apply rotations to the 3D object at different
     // stages.  The outer group called offset is set to the reverse rotation
-    // of the current BNO orientation when the 'Straighten' button is clicked.
-    // This will force the object to center itself staring directly out of
-    // the screen.  The inner group called orientation will be rotated with
-    // the current BNO sensor orientation and cause the object to rotate.
+    // of the current BNO orientation.
+    // The inner group called orientation will be rotated with the current BNO 
+    // sensor orientation and cause the object to rotate.
     offset = new THREE.Group();
     orientation = new THREE.Group();
     offset.add(orientation);
@@ -96,8 +95,8 @@ $(document).ready(function() {
         }
       }
       // Update the orientation with the last BNO sensor reading quaternion.
-      if (bnoData !== null) {
-        orientation.quaternion.set(bnoData.quatx, bnoData.quaty, bnoData.quatz, bnoData.quatw);
+      if (sensorData !== null) {
+        orientation.quaternion.set(sensorData.quatx, sensorData.quaty, sensorData.quatz, sensorData.quatw);
       }
       renderer.render(scene, camera);
     }
@@ -112,7 +111,6 @@ $(document).ready(function() {
         object.load(object);
     });
 
-    // Model list changed event.
     $('#object').change(function() {
         // Remove the old object.
         orientation.remove(objects[currentModel].object);
@@ -122,8 +120,7 @@ $(document).ready(function() {
     });
 
     function updateData(data) {
-        // Save the reading then update the UI.
-        bnoData = data;
+        sensorData = data;
         $('#heading').text(data.heading);
         $('#roll').text(data.roll);
         $('#pitch').text(data.pitch);
