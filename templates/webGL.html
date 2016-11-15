@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Motion Fun 3D Environment</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="col-sm-12"  id="renderer"></div>
+    <div class="container"  id="selector"></div>
+    <form>
+      <div class="form-group">
+        <label for="object">Object:
+          <select class="form-control" id="object">
+          </select>
+      </div>
+    </form>
+  </div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.js"></script>
+<script>
+$(document).ready(function() {
+    var sceneWidth = 800;
+    var sceneHeight = 640;
+    var sensorData = null;
+    var offset = null;
+    var orientation = null;
+    var currentModel = null;
+    var objects = [
+        {
+          name: 'XYZ',
+          load: function(object) {
+            object.object = new THREE.Group();
+            var xAxis = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 7, 32, 32),
+             material);
+            xAxis.rotation.z = 90.0*(Math.PI/180.0);
+            object.object.add(xAxis);
+            var yAxis = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 7, 32, 32),
+             material);
+            object.object.add(yAxis);
+            var zAxis = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 7, 32, 32),
+             material);
+            zAxis.rotation.x = 90.0*(Math.PI/180.0);
+            object.object.add(zAxis);
+          }
+        },
+    ];
+
+    // Setup Three.js scene and camera.
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(35, sceneWidth / sceneHeight, 0.1, 10000);
+    camera.position.z = 10;
+
+    // Setup Three.js WebGL renderer and add it to the page.
+    var renderer = new THREE.WebGLRenderer();
+    renderer.setSize(sceneWidth, sceneHeight);
+    renderer.setClearColor(0xff0000, 0);
+    $('#renderer').append(renderer.domElement);
+    $('#renderer canvas').addClass('center-block');  // Center the renderer.
+
+    // Create white material for the models.
+    var material = new THREE.MeshPhongMaterial({ color: 0xffffff });
+
+    // Setup 3 point lighting with a red and blue point light in upper left
+    // and right corners, plus a bit of backlight from the rear forward.
+    //https://threejs.org/docs/api/lights/PointLight.html
+    var pointLight1 = new THREE.PointLight(0xffbbbb, 0.6);
+    pointLight1.position.set(40, 15, 40);
+    scene.add(pointLight1);
+    var pointLight2 = new THREE.PointLight(0xbbbbff, 0.6);
+    pointLight2.position.set(-40, 15, 40);
+    scene.add(pointLight2);
+    var backLight = new THREE.DirectionalLight(0xffff, 0.6);
+    backLight.position.set(0, 0, 0);
+    scene.add(backLight);
+
+    // Create a couple groups to apply rotations to the 3D object at different
+    // stages.  The outer group called offset is set to the reverse rotation
+    // of the current BNO orientation.
+    // The inner group called orientation will be rotated with the current BNO 
+    // sensor orientation and cause the object to rotate.
+    offset = new THREE.Group();
+    orientation = new THREE.Group();
+    offset.add(orientation);
+    scene.add(offset);
+
+    function render() {
+      requestAnimationFrame(render);
+      // Switch to the first object once it's loaded.
+      if (currentModel === null) {
+        if (objects[0].hasOwnProperty('object')) {
+        currentModel = 0;
+        orientation.add(objects[0].object);
+        }
+      }
+      // Update the orientation with the last BNO sensor reading quaternion.
+      if (sensorData !== null) {
+        orientation.quaternion.set(sensorData.quatx, sensorData.quaty, sensorData.quatz, sensorData.quatw);
+      }
+      renderer.render(scene, camera);
+    }
+
+    render();
+
+    // Drop Down menu for our objects
+    $.each(objects, function(index, object) {
+        // Populate drop-down.
+        $('#object').append($("<option />").val(index).text(object.name));
+        // Load the object
+        object.load(object);
+    });
+
+    $('#object').change(function() {
+        // Remove the old object.
+        orientation.remove(objects[currentModel].object);
+        // Update the current object and add it to the scene.
+        currentModel = $('#object')[0].selectedIndex;
+        orientation.add(objects[currentModel].object);
+    });
+
+    function updateData(data) {
+        sensorData = data;
+        $('#heading').text(data.heading);
+        $('#roll').text(data.roll);
+        $('#pitch').text(data.pitch);
+        $('#quatx').text(data.quatx);
+        $('#quaty').text(data.quaty);
+        $('#quatz').text(data.quatz);
+        $('#quatw').text(data.quatw);
+        $('#temp').text(data.temp)
+        $('#syscal').text(data.syscal);
+        $('#gyrocal').text(data.gyrocal);
+        $('#accelcal').text(data.accelcal);
+        $('#magcal').text(data.magcal);
+    }  
+
+    // Create server sent event connection to receive BNO sensor data.
+    var server = new EventSource('/bno');
+    // Add server sent event handler
+    server.onmessage = function(e) {
+      // Update BNO sensor values.
+      updateData(JSON.parse(e.data));
+    };
+});
+</script>
+</body>
+</html>
