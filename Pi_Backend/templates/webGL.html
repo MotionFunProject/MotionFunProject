@@ -3,6 +3,17 @@
 <head>
   <title>Motion Fun 3D Environment</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<style> 
+  #results {
+    float: left;
+    text-align: center;
+    color: blue;
+    font-size: 30px;
+  }
+  #record {
+    background-color: green;
+  }
+</style>
 </head>
 <body>
     <div class="col-sm-12"  id="renderer"></div>
@@ -16,6 +27,15 @@
     </form>
   </div>
 
+  <div class="form-group">
+    <button type="button" class="btn btn-primary" id="calibrate">Calibrate</button>
+  </div>
+  <div class="form-group">
+    <button type="button" class="btn btn-primary" id="record">Record Data</button>
+    <button type="button" class="btn btn-primary" id="stop">Stop Record</button>
+  </div>
+  <div id = "results">
+  </div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.js"></script>
@@ -47,10 +67,26 @@ $(document).ready(function() {
         },
     ];
 
+    $('#calibrate').click(function() {
+          var currentQuat = new THREE.Quaternion(sensorData.quatx, sensorData.quaty, sensorData.quatz, sensorData.quatw);
+          offset.quaternion.copy(currentQuat.conjugate());
+    });
+
+    $('#record').click(function() {
+          $(this).css('background-color','red');
+          $('#stop').css('background-color','orange');
+          document.getElementById("results").innerHTML = ("<p></p>");
+    });
+
+    $('#stop').click(function() {
+          $('#record').css('background-color','blue');
+          $(this).css('background-color','blue');
+          document.getElementById("results").innerHTML = ("<p>The data was written to datalog.txt</p>");
+    });
     // Setup Three.js scene and camera.
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(35, sceneWidth / sceneHeight, 0.1, 10000);
-    camera.position.z = 10;
+    camera.position.z = 20;
 
     // Setup Three.js WebGL renderer and add it to the page.
     var renderer = new THREE.WebGLRenderer();
