@@ -5,22 +5,50 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 <style> 
   #results {
-    float: left;
-    text-align: center;
-    color: blue;
-    font-size: 30px;
+    padding-top: 10px;
+    float: center;
+    color: green;
+    font-size: 20px;
   }
   #record {
     background-color: green;
   }
+
+  div {
+    padding-left: 10px;
+  }
+
+  #data {
+    display: inline-block;
+  }
+
+  .datacontainer {
+    display: inline-block;
+    padding-right: 20px;
+    text-align: center;
+    padding-bottom: 40px;
+  }
+  #buttons {
+    border-bottom-style: solid;
+    padding-bottom: 10px;
+  }
+  
+  #calibrate{
+    background-color: #668cff;
+  }
+
+  #stop {
+    background-color: #2659ad;
+  }
+
 </style>
 </head>
 <body>
     <div class="col-sm-12"  id="renderer"></div>
     <div class="container"  id="selector"></div>
     <form>
-      <div class="form-group">
-        <label for="object">Object:
+      <div class="form-group" align="center">
+        <label for="object">Select an Object:
           <select class="form-control" id="object">
           </select>
       </div>
@@ -31,17 +59,70 @@
     <button type="button" class="btn btn-primary" id="calibrate">Calibrate</button>
   </div>
   <div class="form-group">
+    <button type="button" class="btn btn-primary" id="showdata">Show Live Data</button>
+    <button type="button" class="btn btn-primary" id="hidedata">Hide Live Data</button>
+  </div>
+  <div class="form-group" id = "buttons">
     <button type="button" class="btn btn-primary" id="record">Record Data</button>
     <button type="button" class="btn btn-primary" id="stop">Stop Record</button>
+    <div id = "results">
+    </div>
   </div>
-  <div id = "results">
+
+
+  <div id = "data">
+  <div class="datacontainer" id="calibration">
+            <h4>Calibration:</h4>
+            <h5>System = <span id="syscal">0</span></h5>
+            <h5>Gyroscope = <span id="gyrocal">0</span></h5>
+            <!-- <h5>Accelerometer = <span id="accelcal">0</span></h5> -->
+            <h5>Magnetometer = <span id="magcal">0</span></h5>
   </div>
+
+  <div class="datacontainer" id="orientation">
+          <h4>Euler Vector Orientation:</h4>
+          <h5></h5>
+          <h5>Heading = <span id="heading">0</span></h5>
+          <h5>Roll = <span id="roll">0</span></h5>
+          <h5>Pitch = <span id="pitch">0</span></h5>
+  </div>
+  <div class="datacontainer">
+          <h4>Temperature:</h4>
+          <h5><span id="temp">0</span></h5>
+  </div>
+  <div class="datacontainer" id="quaternion">
+          <h4>Quaternion Coordinates:</h4>
+          <h5>Quat X = <span id="quatx">0</span></h5>
+          <h5>Quat Y = <span id="quaty">0</span></h5>
+          <h5>Quat Z = <span id="quatz">0</span></h5>
+          <h5>Quat W = <span id="quatw">0</span></h5>
+  </div>
+  <div class="datacontainer" id="mag">
+          <h4>Magnetometer Coordinates:</h4>
+          <h5>Mag X = <span id="magx">0</span></h5>
+          <h5>Mag Y = <span id="magy">0</span></h5>
+          <h5>Mag Z = <span id="magz">0</span></h5>
+  </div>
+  <div class="datacontainer" id="gyro">
+          <h4>Gyroscope Coordinates:</h4>
+          <h5>Gyro X = <span id="gyrox">0</span></h5>
+          <h5>Gyro Y = <span id="gyroy">0</span></h5>
+          <h5>Gyro Z = <span id="gyroz">0</span></h5>
+  </div>
+  <div class="datacontainer" id="gravity">
+          <h4>Gravity:</h4>
+          <h5>Grav X = <span id="gravx">0</span></h5>
+          <h5>Grav Y = <span id="gravy">0</span></h5>
+          <h5>Grav Z = <span id="gravz">0</span></h5>
+  </div>
+  </div>
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.js"></script>
 <script>
 $(document).ready(function() {
-    var sceneWidth = 800;
+    var sceneWidth = 900;
     var sceneHeight = 640;
     var sensorData = null;
     var offset = null;
@@ -49,7 +130,7 @@ $(document).ready(function() {
     var currentModel = null;
     var objects = [
         {
-          name: 'XYZ',
+          name: 'XYZ Axis',
           load: function(object) {
             object.object = new THREE.Group();
             var xAxis = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 7, 32, 32),
@@ -67,22 +148,37 @@ $(document).ready(function() {
         },
     ];
 
+    var recording = false;
+
     $('#calibrate').click(function() {
           var currentQuat = new THREE.Quaternion(sensorData.quatx, sensorData.quaty, sensorData.quatz, sensorData.quatw);
           offset.quaternion.copy(currentQuat.conjugate());
     });
 
     $('#record').click(function() {
+          recording = true;
           $(this).css('background-color','red');
           $('#stop').css('background-color','orange');
-          document.getElementById("results").innerHTML = ("<p></p>");
+          document.getElementById("results").innerHTML = ("<p>Recording...</p>");
     });
 
     $('#stop').click(function() {
-          $('#record').css('background-color','blue');
-          $(this).css('background-color','blue');
-          document.getElementById("results").innerHTML = ("<p>The data was written to datalog.txt</p>");
+      if(recording) {
+          $('#record').css('background-color','green');
+          $(this).css('background-color','#2659ad');
+          document.getElementById("results").innerHTML = ("<p>The data was written to datalog.txt successfully</p>");
+          recording = false;
+      }
     });
+
+     $('#showdata').click(function() {
+        $('#data').show();
+    });
+
+     $('#hidedata').click(function() {
+        $('#data').hide();
+    });
+
     // Setup Three.js scene and camera.
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(35, sceneWidth / sceneHeight, 0.1, 10000);
@@ -164,6 +260,15 @@ $(document).ready(function() {
         $('#quaty').text(data.quaty);
         $('#quatz').text(data.quatz);
         $('#quatw').text(data.quatw);
+        $('#gravx').text(data.gravx);
+        $('#gravy').text(data.gravy);
+        $('#gravz').text(data.gravz);
+        $('#gyrox').text(data.gyrox);
+        $('#gyroy').text(data.gyroy);
+        $('#gyroz').text(data.gyroz);
+        $('#magx').text(data.magx);
+        $('#magy').text(data.magy);
+        $('#magz').text(data.magz);
         $('#temp').text(data.temp)
         $('#syscal').text(data.syscal);
         $('#gyrocal').text(data.gyrocal);
@@ -173,6 +278,10 @@ $(document).ready(function() {
 
     // Create server sent event connection to receive BNO sensor data.
     var server = new EventSource('/bno');
+
+    server.onopen = function(e) {
+        $('#data').hide();
+    };
     // Add server sent event handler
     server.onmessage = function(e) {
       // Update BNO sensor values.
