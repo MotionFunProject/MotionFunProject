@@ -1,75 +1,155 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<title>Motion Fun</title>
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-  </head>
-	<body>
-		<div class="container" id="orientation">
-          <h2>Euler Vector Orientation (degrees):</h2>
-          <h3>Heading = <span id="heading">0</span></h3>
-          <h3>Roll = <span id="roll">0</span></h3>
-          <h3>Pitch = <span id="pitch">0</span></h3>
-    </div>
-    <div class="container">
-          <h2>Temperature</h2>
-          <h3>Temperature = <span id="temp">0</span></h3>
-    </div>
-    <div class="container" id="quaternion">
-          <h2>Quaternion Coordinates</h2>
-          <h3>Quat X = <span id="quatx">0</span></h3>
-          <h3>Quat Y = <span id="quaty">0</span></h3>
-          <h3>Quat Z = <span id="quatz">0</span></h3>
-          <h3>Quat W = <span id="quatw">0</span></h3>
-    </div>
-    <div class="container" id="calibration">
-            <h2>Calibration:</h2>
-            <h3>(0 = Uncalibrated )</h3>
-            <h3>(3 = Calibrated)</h3>
-            <h3>System = <span id="syscal">0</span></h3>
-            <h3>Gyroscope = <span id="gyrocal">0</span></h3>
-            <h3>Accelerometer = <span id="accelcal">0</span></h3>
-            <h3>Magnetometer = <span id="magcal">0</span></h3>
-    </div>
+<head>
+  <title>Motion Fun 3D Environment</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<style> 
+  #results {
+    padding-top: 10px;
+    float: center;
+    color: green;
+    font-size: 20px;
+  }
+  #record {
+    background-color: green;
+  }
 
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-  <script>
-  $(document).ready(function() {
-     var bnoData = null;
+  div {
+    padding-left: 10px;
+  }
+
+  #data {
+    display: inline-block;
+  }
+
+  .datacontainer {
+    display: inline-block;
+    padding-right: 20px;
+    text-align: center;
+    padding-bottom: 40px;
+  }
+  #buttons {
+    border-bottom-style: solid;
+    padding-bottom: 10px;
+  }
+  
+  #calibrate{
+    background-color: #668cff;
+  }
+
+  #stop {
+    background-color: #2659ad;
+  }
+
+</style>
+</head>
+<body>
+  <div class="form-group">
+    <button type="button" class="btn btn-primary" id="calibrate">Calibrate</button>
+  </div>
+  <div class="form-group">
+    <button type="button" class="btn btn-primary" id="showdata">Show Live Data</button>
+    <button type="button" class="btn btn-primary" id="hidedata">Hide Live Data</button>
+  </div>
+
+  <div id = "data">
+  <div class="datacontainer" id="calibration">
+            <h4>Calibration:</h4>
+            <h5>System = <span id="syscal">0</span></h5>
+            <h5>Gyroscope = <span id="gyrocal">0</span></h5>
+            <!-- <h5>Accelerometer = <span id="accelcal">0</span></h5> -->
+            <h5>Magnetometer = <span id="magcal">0</span></h5>
+  </div>
+
+  <div class="datacontainer" id="orientation">
+          <h4>Euler Vector Orientation:</h4>
+          <h5></h5>
+          <h5>Heading = <span id="heading">0</span></h5>
+          <h5>Roll = <span id="roll">0</span></h5>
+          <h5>Pitch = <span id="pitch">0</span></h5>
+  </div>
+  <div class="datacontainer">
+          <h4>Temperature:</h4>
+          <h5><span id="temp">0</span></h5>
+  </div>
+  <div class="datacontainer" id="quaternion">
+          <h4>Quaternion Coordinates:</h4>
+          <h5>Quat X = <span id="quatx">0</span></h5>
+          <h5>Quat Y = <span id="quaty">0</span></h5>
+          <h5>Quat Z = <span id="quatz">0</span></h5>
+          <h5>Quat W = <span id="quatw">0</span></h5>
+  </div>
+  <div class="datacontainer" id="mag">
+          <h4>Magnetometer Coordinates:</h4>
+          <h5>Mag X = <span id="magx">0</span></h5>
+          <h5>Mag Y = <span id="magy">0</span></h5>
+          <h5>Mag Z = <span id="magz">0</span></h5>
+  </div>
+  <div class="datacontainer" id="gyro">
+          <h4>Gyroscope Coordinates:</h4>
+          <h5>Gyro X = <span id="gyrox">0</span></h5>
+          <h5>Gyro Y = <span id="gyroy">0</span></h5>
+          <h5>Gyro Z = <span id="gyroz">0</span></h5>
+  </div>
+  <div class="datacontainer" id="gravity">
+          <h4>Gravity:</h4>
+          <h5>Grav X = <span id="gravx">0</span></h5>
+          <h5>Grav Y = <span id="gravy">0</span></h5>
+          <h5>Grav Z = <span id="gravz">0</span></h5>
+  </div>
+  </div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.js"></script>
+
+<script>
+$(document).ready(function() {
+     $('#showdata').click(function() {
+        $('#data').show();
+    });
+
+     $('#hidedata').click(function() {
+        $('#data').hide();
+    });
 
     function updateData(data) {
-          // Save the reading then update the UI.
-          bnoData = data;
-          $('#heading').text(data.heading);
-          $('#roll').text(data.roll);
-          $('#pitch').text(data.pitch);
-          $('#quatx').text(data.quatx);
-          $('#quaty').text(data.quaty);
-          $('#quatz').text(data.quatz);
-          $('#quatw').text(data.quatw);
-          $('#temp').text(data.temp)
-          $('#syscal').text(data.syscal);
-          $('#gyrocal').text(data.gyrocal);
-          $('#accelcal').text(data.accelcal);
-          $('#magcal').text(data.magcal);
+        sensorData = data;
+        $('#heading').text(data.heading);
+        $('#roll').text(data.roll);
+        $('#pitch').text(data.pitch);
+        $('#quatx').text(data.quatx);
+        $('#quaty').text(data.quaty);
+        $('#quatz').text(data.quatz);
+        $('#quatw').text(data.quatw);
+        $('#gravx').text(data.gravx);
+        $('#gravy').text(data.gravy);
+        $('#gravz').text(data.gravz);
+        $('#gyrox').text(data.gyrox);
+        $('#gyroy').text(data.gyroy);
+        $('#gyroz').text(data.gyroz);
+        $('#magx').text(data.magx);
+        $('#magy').text(data.magy);
+        $('#magz').text(data.magz);
+        $('#temp').text(data.temp)
+        $('#syscal').text(data.syscal);
+        $('#gyrocal').text(data.gyrocal);
+        $('#accelcal').text(data.accelcal);
+        $('#magcal').text(data.magcal);
     }  
 
     // Create server sent event connection to receive BNO sensor data.
     var server = new EventSource('/bno');
 
     server.onopen = function(e) {
-        $('#orientation').show();
-        $('#calibration').show();
-        $('#quaternion').show();
+        $('#data').show();
     };
-
     // Add server sent event handler
     server.onmessage = function(e) {
-        // Update BNO sensor values.
-        updateData(JSON.parse(e.data));
+      // Update BNO sensor values.
+      updateData(JSON.parse(e.data));
     };
-  });
-  </script>
-	</body>
+});
+</script>
+</body>
 </html>
