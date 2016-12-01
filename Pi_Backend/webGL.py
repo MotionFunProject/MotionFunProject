@@ -1,14 +1,9 @@
 # Motion Fun Project
 #
-# REQUIREMENTS: 
+# www.github.com/MotionFunProject/MotionFunProject
+# www.motionfun490.com
 #
-# - Flask web framework needs to be installed.
-# - An Adafruit BNO055 IMU Sensor has to be connected to the Raspberry Pi that this code runs on.
-# - An SSH or SCP connection to the Raspberry Pi from a separate computer in your LAN.
-#
-# HOW TO RUN:
-#
-# Run this code using terminal command 'sudo python webData.py'.
+# Run this code using terminal command 'sudo python webGL.py'
 
 import threading
 import time
@@ -20,6 +15,8 @@ from Adafruit_BNO055 import BNO055
 
 # Raspberry Pi configuration with serial UART and RST connected to GPIO 18:
 bno = BNO055.BNO055(serial_port='/dev/ttyAMA0', rst=18)
+
+write = open("datalog.txt", "w")
 
 # BNO sensor axes remap values:  DO NOT CHANGE THESE VALUES!! 
 BNO_AXIS_REMAP = { 'x': BNO055.AXIS_REMAP_X,
@@ -93,7 +90,9 @@ def sse():
                 'magx': magx, 'magy': magy, 'magz': magz, 'gyrox': gyrox, 'gyroy': gyroy,
                 'gyro': gyroz, 'accx': accx, 'accy': accy, 'accz': accz, 'linx': linx, 
                 'liny': liny, 'linz': linz, 'gravx': gravx, 'gravy': gravy, 'gravz': gravz }
-        yield 'data: {0}\n\n'.format(json.dumps(data))
+        toSend = 'data: {0}\n\n'.format(json.dumps(data))
+        write.write(toSend)
+        yield toSend
 
 
 @app.before_first_request
