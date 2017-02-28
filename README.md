@@ -19,10 +19,10 @@ Check out our introduction video on our website for a full overview of our webGL
 
 If you do not have a webGL enabled browser, you can use webData.py to view sensor information and calibrate your sensor, but you will not be able to record or view our 3D Environment. This file can be run directly on the Raspberry Pi. 
 
-#### Blender Addon
+#### Blender Add-on
 
-(Coming Soon) 
 
+Within the directory, blender_files, contains the JSON parser which reconfigures the raw data given by the raspberry pi and feed the data into the blender model in autoload.py
 
 
 
