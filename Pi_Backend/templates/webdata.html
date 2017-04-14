@@ -105,6 +105,29 @@
 
 <script>
 $(document).ready(function() {
+    var recording = false;
+
+    $('#calibrate').click(function() {
+          var currentQuat = new THREE.Quaternion(sensorData.quatx, sensorData.quaty, sensorData.quatz, sensorData.quatw);
+          offset.quaternion.copy(currentQuat.conjugate());
+    });
+
+    $('#record').click(function() {
+          recording = true;
+          $(this).css('background-color','red');
+          $('#stop').css('background-color','orange');
+          document.getElementById("results").innerHTML = ("<p>Recording...</p>");
+    });
+
+    $('#stop').click(function() {
+      if(recording) {
+          $('#record').css('background-color','green');
+          $(this).css('background-color','#2659ad');
+          document.getElementById("results").innerHTML = ("<p>The data was written to datalog.txt successfully</p>");
+          recording = false;
+      }
+    });
+    
      $('#showdata').click(function() {
         $('#data').show();
     });
